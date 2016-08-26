@@ -213,7 +213,7 @@ class QuadTree
             // if rect fits into a subnode ..
             if (index !== -1)
             {
-                this.nodes[index].retrieve(rect, callback);
+                this.nodes[index].callback(rect, callback);
             }
 
             // if rect does not fit into a subnode, check it against all subnodes
@@ -221,7 +221,7 @@ class QuadTree
             {
                 for (var i = 0; i < this.nodes.length; i = i + 1)
                 {
-                    this.nodes[i].retrieve(rect, callback);
+                    this.nodes[i].callback(rect, callback);
                 }
             }
         }
