@@ -14,7 +14,7 @@ class QuadTree
       * @param {number=4} maxLevels - total max levels inside root Quadtree
       * @param {number=0} level - depth level, required for subnodes
       */
-    constructor(maxBounds, maxObjects, maxLevels, level)
+    constructor(maxBounds, dynamic, maxObjects, maxLevels, level)
     {
         this.maxObjects = maxObjects || 10;
         this.maxLevels = maxLevels || 4;
@@ -191,6 +191,52 @@ class QuadTree
         }
 
         return returnObjects;
+    }
+
+    /*
+     * perform a callback on all objects that could collide with the given object
+     * @param {object} rect of the object to be checked, with x, y, width, height
+     * @param {function} callback
+     * @Return {array} all detected objects
+     */
+    callback(rect, callback)
+    {
+        var index = this.getIndex(rect);
+        for (var i = 0; i < this.objects.length; i++)
+        {
+            callback(this.objects[i]);
+        }
+
+        // if we have subnodes ...
+        if (typeof this.nodes[0] !== 'undefined')
+        {
+            // if rect fits into a subnode ..
+            if (index !== -1)
+            {
+                this.nodes[index].retrieve(rect, callback);
+            }
+
+            // if rect does not fit into a subnode, check it against all subnodes
+            else
+            {
+                for (var i = 0; i < this.nodes.length; i = i + 1)
+                {
+                    this.nodes[i].retrieve(rect, callback);
+                }
+            }
+        }
+    }
+
+    callbackAll(callback)
+    {
+        for (var i = 0; i < this.objects.length; i++)
+        {
+            callback(this.objects[i]);
+        }
+        for (var i = 0; i < this.nodes.length; i++)
+        {
+            this.node[i].callbackAll(callback);
+        }
     }
 
     /*
