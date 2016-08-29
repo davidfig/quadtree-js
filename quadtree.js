@@ -1,9 +1,7 @@
 /*
  * Javascript Quadtree
  * @licence MIT
- * @author Timo Hausmann
- * @author David Figatner (mostly reformatting and using ES6 class)
- * Copyright (c) 2012 Timo Hausmann (forked from https://github.com/timohausmann/quadtree-js/
+ * @author David Figatner
  * Copyright (c) 2016 YOPEY YOPEY LLC (https://github.com/davidfig/quadtree-js/)
  */
 class QuadTree
@@ -14,10 +12,10 @@ class QuadTree
       * @param {number=4} maxLevels - total max levels inside root Quadtree
       * @param {number=0} level - depth level, required for subnodes
       */
-    constructor(maxBounds, dynamic, maxObjects, maxLevels, level)
+    constructor(maxBounds, maxObjects, maxLevels, level)
     {
         this.maxObjects = maxObjects || 10;
-        this.maxLevels = maxLevels || 4;
+        this.maxLevels = maxLevels || 8;
 
         this.level = level || 0;
         this.bounds = maxBounds;
@@ -197,34 +195,39 @@ class QuadTree
      * perform a callback on all objects that could collide with the given object
      * @param {object} rect of the object to be checked, with x, y, width, height
      * @param {function} callback
-     * @Return {array} all detected objects
+     * @return {boolean} true if callback returned true (and terminated)
      */
     callback(rect, callback)
     {
         var index = this.getIndex(rect);
         for (var i = 0; i < this.objects.length; i++)
         {
-            callback(this.objects[i]);
+            if (callback(this.objects[i]))
+            {
+                return true;
+            }
         }
-
-        // if we have subnodes ...
-        if (typeof this.nodes[0] !== 'undefined')
+        if (this.nodes.length)
         {
-            // if rect fits into a subnode ..
             if (index !== -1)
             {
-                this.nodes[index].callback(rect, callback);
+                if (this.nodes[index].callback(rect, callback))
+                {
+                    return true;
+                }
             }
-
-            // if rect does not fit into a subnode, check it against all subnodes
             else
             {
-                for (var i = 0; i < this.nodes.length; i = i + 1)
+                for (var i = 0; i < this.nodes.length; i++)
                 {
-                    this.nodes[i].callback(rect, callback);
+                    if (this.nodes[i].callback(rect, callback))
+                    {
+                        return true;
+                    }
                 }
             }
         }
+        return false;
     }
 
     callbackAll(callback)
